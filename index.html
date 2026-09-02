@@ -849,6 +849,36 @@ footer{
     width:100%;
   }
 }
+
+
+/* ============================================================
+   ADMIN ACCESS
+   ============================================================ */
+.admin-hidden{display:none!important}
+.home-admin-btn{background:transparent;color:var(--text);border-color:var(--line)}
+.home-admin-btn:hover{border-color:var(--accent);background:rgba(216,237,99,.06)}
+.admin-overlay{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(3,5,6,.78);backdrop-filter:blur(14px)}
+.admin-overlay.open{display:flex}
+.admin-modal{width:min(410px,100%);padding:22px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,#151b1d,#0d1113);box-shadow:0 24px 80px rgba(0,0,0,.45)}
+body.light .admin-modal{background:linear-gradient(180deg,#fff,#f4f7f4)}
+.admin-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.admin-eyebrow{color:var(--accent);font-size:10px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase}
+.admin-modal h2{margin:5px 0 0;font-size:22px;letter-spacing:-.4px}
+.admin-close{width:30px;height:30px;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--muted);font-size:20px;line-height:1}
+.admin-close:hover{color:var(--text);border-color:var(--accent)}
+.admin-modal-copy{margin:16px 0 18px;color:var(--muted);font-size:12px;line-height:1.55}
+.admin-form{display:grid;gap:11px}
+.admin-form label{display:grid;gap:5px;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase}
+.admin-form input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:#090d0f;color:var(--text);outline:0}
+body.light .admin-form input{background:#fff}
+.admin-form input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(216,237,99,.08)}
+.admin-submit{margin-top:4px;border:0;border-radius:9px;padding:11px 13px;background:var(--accent);color:#10140d;font-weight:900}
+.admin-error{min-height:17px;margin-top:2px;color:var(--red);font-size:11px}
+.admin-hint{margin-top:16px;color:var(--muted);font-size:10px;line-height:1.5}
+.admin-card-actions{display:flex;align-items:center;gap:8px}
+.admin-logout{padding:5px 8px;font-size:10px}
+@media(max-width:600px){.admin-modal{padding:18px}.admin-card-actions{gap:5px}.admin-logout{font-size:9px;padding:5px 6px}}
+
 </style>
 </head>
 
@@ -889,6 +919,10 @@ footer{
       </button>
     </div>
 
+    <div class="home-actions admin-home-actions">
+      <button class="btn home-admin-btn" onclick="openAdminLogin()">ADMIN LOGIN</button>
+    </div>
+
     <div class="home-info">
       <div class="home-info-card">
         <strong>4 × 4 FT</strong>
@@ -914,9 +948,44 @@ footer{
 </div>
 
 
+
 <!-- ============================================================
      MAIN TRACKER
      ============================================================ -->
+
+
+
+<!-- ADMIN LOGIN -->
+<div id="adminLoginOverlay" class="admin-overlay" role="dialog" aria-modal="true" aria-labelledby="adminLoginTitle">
+  <div class="admin-modal">
+    <div class="admin-modal-head">
+      <div>
+        <div class="admin-eyebrow">Private console</div>
+        <h2 id="adminLoginTitle">Admin login</h2>
+      </div>
+      <button class="admin-close" onclick="closeAdminLogin()" aria-label="Close admin login">×</button>
+    </div>
+
+    <p class="admin-modal-copy">
+      Sign in to manage the public telemetry endpoint. The public tracker remains strictly read-only.
+    </p>
+
+    <form id="adminLoginForm" class="admin-form" onsubmit="handleAdminLogin(event)">
+      <label>
+        Username
+        <input id="adminUsername" name="username" autocomplete="username" required>
+      </label>
+      <label>
+        Password
+        <input id="adminPassword" name="password" type="password" autocomplete="current-password" required>
+      </label>
+      <div id="adminError" class="admin-error" role="alert"></div>
+      <button class="admin-submit" type="submit">SIGN IN →</button>
+    </form>
+
+    <div class="admin-hint">Admin access only. Keep this page behind real server-side authentication before using it for anything sensitive.</div>
+  </div>
+</div>
 
 <div id="trackerApp" class="app app-hidden">
 
@@ -936,6 +1005,14 @@ footer{
   </div>
 
   <div class="header-actions">
+
+    <button
+      class="icon-btn"
+      onclick="openAdminLogin()"
+      title="Admin login"
+      aria-label="Admin login">
+      A
+    </button>
 
     <button
       class="icon-btn"
@@ -962,6 +1039,7 @@ footer{
   </div>
 
 </header>
+
 
 
 <div class="grid">
@@ -1131,6 +1209,7 @@ footer{
 </div>
 
 
+
 <div class="card">
 
   <div class="title">
@@ -1173,6 +1252,7 @@ footer{
 </div>
 
 
+
 <div class="card">
 
   <div class="title">
@@ -1196,6 +1276,7 @@ footer{
 </div>
 
 
+
 <div class="card">
 
   <div class="title">
@@ -1212,7 +1293,9 @@ footer{
 </section>
 
 
+
 <aside class="col">
+
 
 
 <div class="card">
@@ -1293,6 +1376,7 @@ footer{
 </div>
 
 
+
 <div class="card">
 
   <div class="title">
@@ -1351,6 +1435,7 @@ footer{
 </div>
 
 
+
 <div class="card">
 
   <div class="title">
@@ -1389,11 +1474,15 @@ footer{
 </div>
 
 
-<div class="card">
+
+<div id="telemetryAdminCard" class="card admin-hidden">
 
   <div class="title">
-    <h2>Public telemetry source</h2>
-    <span id="sourceBadge" class="badge">CONFIG</span>
+    <h2>Admin telemetry source</h2>
+    <div class="admin-card-actions">
+      <span id="sourceBadge" class="badge">LOCKED</span>
+      <button id="adminSessionButton" class="btn admin-logout" onclick="logoutAdmin()">LOG OUT</button>
+    </div>
   </div>
 
   <div class="body">
@@ -1404,7 +1493,7 @@ footer{
         id="telemetryUrl"
         spellcheck="false"
         autocomplete="off"
-        placeholder="https://your-public-telemetry-domain.example/api/status">
+        placeholder="[https://your-public-telemetry-domain.example/api/status](https://your-public-telemetry-domain.example/api/status)">
 
       <button
         class="btn"
@@ -1447,10 +1536,12 @@ footer{
 </div>
 
 
+
 <script>
 "use strict";
 
 const $=id=>document.getElementById(id);
+
 
 
 /* ============================================================
@@ -1501,6 +1592,7 @@ function toggleTheme(){
 })();
 
 
+
 /* ============================================================
    HOME SCREEN
    ============================================================ */
@@ -1530,6 +1622,7 @@ function returnHome(){
 }
 
 
+
 /* ============================================================
    ORIGINAL TRACKER CONFIGURATION
    ============================================================ */
@@ -1552,7 +1645,7 @@ function returnHome(){
      https://YOUR-GITHUB-PAGES-ORIGIN
 */
 
-const PUBLIC_TELEMETRY_URL="https://YOUR-TELEMETRY-DOMAIN.example/api/status";
+const PUBLIC_TELEMETRY_URL="[https://YOUR-TELEMETRY-DOMAIN.example/api/status](https://YOUR-TELEMETRY-DOMAIN.example/api/status)";
 
 const POLL_INTERVAL=1000;
 const STALE_TIMEOUT=3500;
@@ -1571,7 +1664,9 @@ let massHistory=[];
 let resizeTimer=0;
 
 
-const PRIVATE_HOST=/^(localhost|127(?:\.\d+){3}|0\.0\.0\.0|10(?:\.\d+){3}|172\.\d+\.\d+\.\d+|192\.168(?:\.\d+){2})$/i;
+
+const PRIVATE_HOST=/^(localhost|127(?:\.d+){3}|0\.0\.0\.0|10(?:\.d+){3}|172\.d+\.d+\.d+|192\.168(?:\.d+){2})$/i;
+
 
 
 function validPublicURL(value){
@@ -1592,11 +1687,13 @@ function validPublicURL(value){
 }
 
 
+
 function normalizeURL(value){
 
   return value.trim().replace(/\/+$/,"");
 
 }
+
 
 
 function val(obj,...keys){
@@ -1615,6 +1712,7 @@ function val(obj,...keys){
 }
 
 
+
 function setText(id,value){
 
   $(id).textContent=
@@ -1625,6 +1723,7 @@ function setText(id,value){
 }
 
 
+
 function fmtBool(v,yes="YES",no="NO"){
 
   return v===undefined||v===null
@@ -1632,6 +1731,7 @@ function fmtBool(v,yes="YES",no="NO"){
     :(v?yes:no);
 
 }
+
 
 
 function fmtTime(sec){
@@ -1660,11 +1760,13 @@ function fmtTime(sec){
 }
 
 
+
 function setClass(id,cls){
 
   $(id).className=cls;
 
 }
+
 
 
 function setBadge(id,text,tone=""){
@@ -1681,6 +1783,7 @@ function setBadge(id,text,tone=""){
     (tone?" "+tone:"");
 
 }
+
 
 
 function log(text){
@@ -1700,6 +1803,7 @@ function log(text){
 }
 
 
+
 function clearLog(){
 
   $("log").replaceChildren();
@@ -1707,6 +1811,7 @@ function clearLog(){
   log("Event history cleared");
 
 }
+
 
 
 function online(ok){
@@ -1749,6 +1854,7 @@ function online(ok){
       :"OFFLINE";
 
 }
+
 
 
 function updateMap(xFt,yFt,heading,dist){
@@ -1825,6 +1931,7 @@ function updateMap(xFt,yFt,heading,dist){
   }
 
 }
+
 
 
 function update(data){
@@ -1928,6 +2035,7 @@ function update(data){
   );
 
 
+
   const mode=
     val(data,"mode")??
     val(data.robot||{},"mode");
@@ -1948,6 +2056,7 @@ function update(data){
       ?"red"
       :"green"
   );
+
 
 
   const ps5=
@@ -1990,6 +2099,7 @@ function update(data){
   );
 
 
+
   const bp=
     val(data,"battery_percent")??
     val(data.battery||{},"percent");
@@ -2011,6 +2121,7 @@ function update(data){
       ?`${Number(bv).toFixed(2)} V`
       :"--"
   );
+
 
 
   const temp=
@@ -2063,6 +2174,7 @@ function update(data){
       ?"bad"
       :"ok"
   );
+
 
 
   const scoop=
@@ -2145,6 +2257,7 @@ function update(data){
     );
 
 
+
   setText(
     "scoop",
     scoop!==undefined
@@ -2225,6 +2338,7 @@ function update(data){
   );
 
 
+
   const sand=
     val(data,"sand_processed_g")??
     val(
@@ -2265,6 +2379,7 @@ function update(data){
     "cycles",
     cycles
   );
+
 
 
   const mt=
@@ -2332,6 +2447,7 @@ function update(data){
   );
 
 
+
   const mr=
     val(data,"motor_runtime_s")??
     val(
@@ -2365,6 +2481,7 @@ function update(data){
     runtime.warnings;
 
 
+
   setText(
     "motorRuntime",
     mr!==undefined
@@ -2390,6 +2507,7 @@ function update(data){
   );
 
 
+
   if(
     lc!==undefined&&
     Number.isFinite(Number(lc))
@@ -2410,6 +2528,7 @@ function update(data){
   }
 
 }
+
 
 
 function drawChart(){
@@ -2521,6 +2640,79 @@ function drawChart(){
 }
 
 
+
+
+
+/* ============================================================
+   ADMIN ACCESS
+   ============================================================ */
+const ADMIN_USERNAME="rrlogs";
+const ADMIN_PASSWORD="vdtyoyoaatu";
+const ADMIN_SESSION_KEY="sandrasift_admin_session";
+let adminAuthenticated=false;
+
+function setAdminPanelVisibility(){
+  const card=$("telemetryAdminCard");
+  if(card)card.classList.toggle("admin-hidden",!adminAuthenticated);
+}
+
+function openAdminLogin(){
+  if(adminAuthenticated){
+    const card=$("telemetryAdminCard");
+    if(card)card.scrollIntoView({behavior:"smooth",block:"center"});
+    return;
+  }
+  $("adminLoginOverlay").classList.add("open");
+  $("adminError").textContent="";
+  setTimeout(()=>$("adminUsername").focus(),40);
+}
+
+function closeAdminLogin(){
+  $("adminLoginOverlay").classList.remove("open");
+  $("adminLoginForm").reset();
+  $("adminError").textContent="";
+}
+
+function handleAdminLogin(event){
+  event.preventDefault();
+  const username=$("adminUsername").value.trim();
+  const password=$("adminPassword").value;
+
+  if(username!==ADMIN_USERNAME||password!==ADMIN_PASSWORD){
+    $("adminError").textContent="Invalid username or password.";
+    $("adminPassword").select();
+    return;
+  }
+
+  adminAuthenticated=true;
+  sessionStorage.setItem(ADMIN_SESSION_KEY,"1");
+  setAdminPanelVisibility();
+  closeAdminLogin();
+
+  if(!$("homeScreen").classList.contains("hidden"))enterTracker();
+  log("Admin session started");
+  setTimeout(()=>$("telemetryAdminCard").scrollIntoView({behavior:"smooth",block:"center"}),50);
+}
+
+function logoutAdmin(){
+  adminAuthenticated=false;
+  sessionStorage.removeItem(ADMIN_SESSION_KEY);
+  setAdminPanelVisibility();
+  log("Admin session ended");
+}
+
+(function initAdmin(){
+  adminAuthenticated=sessionStorage.getItem(ADMIN_SESSION_KEY)==="1";
+  setAdminPanelVisibility();
+  $("adminLoginOverlay").addEventListener("click",event=>{
+    if(event.target===$("adminLoginOverlay"))closeAdminLogin();
+  });
+  document.addEventListener("keydown",event=>{
+    if(event.key==="Escape")closeAdminLogin();
+  });
+})();
+
+
 async function getJSON(){
 
   if(!validPublicURL(BASE))
@@ -2567,6 +2759,7 @@ async function getJSON(){
   }
 
 }
+
 
 
 async function refresh(){
@@ -2629,6 +2822,7 @@ async function refresh(){
 }
 
 
+
 function staleCheck(){
 
   if(
@@ -2645,6 +2839,7 @@ function staleCheck(){
   }
 
 }
+
 
 
 function saveURL(){
@@ -2697,6 +2892,7 @@ function saveURL(){
 }
 
 
+
 function manualRefresh(){
 
   log(
@@ -2706,6 +2902,7 @@ function manualRefresh(){
   refresh();
 
 }
+
 
 
 /* ============================================================
@@ -2773,4 +2970,7 @@ function manualRefresh(){
 </script>
 
 </body>
-</html>
+</html> 
+
+<!-- username of admin: rrlogs -->
+<!-- password of admin: vdtyoyoaatu -->
