@@ -7,6 +7,77 @@
 <meta name="description" content="SANDRASIFT public read-only live robot tracking station">
 <title>SANDRASIFT | Live Tracking</title>
 
+<audio id="bgMusic" preload="auto">
+  <source src="./aria-math.mp3" type="audio/mpeg">
+</audio>
+
+<button id="musicToggle" style="
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  padding: 12px 18px;
+  border: 1px solid #6ee7b7;
+  border-radius: 12px;
+  background: #111827;
+  color: white;
+  cursor: pointer;
+">
+  🎵 Enable Sound
+</button>
+
+<script>
+  const music = document.getElementById("bgMusic");
+  const toggle = document.getElementById("musicToggle");
+
+  const SECTION_LENGTH = 120;
+
+  music.addEventListener("loadedmetadata", async () => {
+    music.currentTime = Math.max(
+      0,
+      music.duration - SECTION_LENGTH
+    );
+
+    music.addEventListener("timeupdate", () => {
+      if (music.currentTime >= music.duration) {
+        music.currentTime = Math.max(
+          0,
+          music.duration - SECTION_LENGTH
+        );
+        music.play().catch(() => {});
+      }
+    });
+
+    try {
+      await music.play();
+      toggle.textContent = "🔊 Music On";
+    } catch {
+      toggle.textContent = "🎵 Enable Sound";
+    }
+  }, { once: true });
+
+  toggle.addEventListener("click", async () => {
+    if (music.paused) {
+      if (music.currentTime === 0) {
+        music.currentTime = Math.max(
+          0,
+          music.duration - SECTION_LENGTH
+        );
+      }
+
+      try {
+        await music.play();
+        toggle.textContent = "🔊 Music On";
+      } catch {
+        toggle.textContent = "🎵 Tap to Play";
+      }
+    } else {
+      music.pause();
+      toggle.textContent = "🔇 Music Off";
+    }
+  });
+</script>
+  
 <style>
 *{box-sizing:border-box}
 
