@@ -2978,78 +2978,171 @@ function manualRefresh(){
 })();
 </script>
 
+<!-- SANDRASIFT BACKGROUND MUSIC -->
 <audio id="bgMusic" preload="auto">
   <source src="./ariamath.mp3" type="audio/mpeg">
 </audio>
 
 <button id="musicToggle" style="
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  z-index:9999;
-  padding:12px 18px;
-  border:1px solid #6ee7b7;
-  border-radius:12px;
-  background:#111827;
-  color:white;
-  cursor:pointer;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2147483647;
+  padding: 12px 18px;
+  border: 1px solid #6ee7b7;
+  border-radius: 12px;
+  background: #111827;
+  color: white;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
 ">
   🎵 Enable Sound
 </button>
 
 <script>
 (() => {
+  "use strict";
+
   const music = document.getElementById("bgMusic");
   const toggle = document.getElementById("musicToggle");
+
+  if (!music || !toggle) {
+    console.error("SANDRASIFT music elements not found.");
+    return;
+  }
+
   const SECTION_LENGTH = 120;
 
   let startTime = 0;
+  let metadataPromise = null;
 
+  // Calculate the beginning of the final two minutes.
   function prepareMusic() {
-    if (!Number.isFinite(music.duration) || music.duration <= 0) {
+    if (
+      !Number.isFinite(music.duration) ||
+      music.duration <= 0
+    ) {
       return false;
     }
 
-    startTime = Math.max(0, music.duration - SECTION_LENGTH);
+    startTime = Math.max(
+      0,
+      music.duration - SECTION_LENGTH
+    );
+
     return true;
   }
 
-  music.addEventListener("loadedmetadata", () => {
-    prepareMusic();
-
-    // Attempt autoplay; browsers may block sound.
-    music.currentTime = startTime;
-
-    music.play().then(() => {
-      toggle.textContent = "🔊 Music On";
-    }).catch(() => {
-      toggle.textContent = "🎵 Enable Sound";
-    });
-  }, { once: true });
-
-  // Loop only the final two minutes.
-  music.addEventListener("timeupdate", () => {
-    if (music.duration && music.currentTime >= music.duration - 0.15) {
-      music.currentTime = startTime;
-      music.play().catch(() => {});
+  // Wait for metadata instead of getting stuck loading.
+  function waitForMetadata() {
+    if (prepareMusic()) {
+      return Promise.resolve();
     }
-  });
 
-  toggle.addEventListener("click", async () => {
-    if (music.paused) {
-      if (music.readyState === 0) {
+    if (metadataPromise) {
+      return metadataPromise;
+    }
+
+    metadataPromise = new Promise((resolve, reject) => {
+      const cleanup = () => {
+        music.removeEventListener("loadedmetadata", onLoaded);
+        music.removeEventListener("error", onError);
+        clearTimeout(timeout);
+      };
+
+      const onLoaded = () => {
+        cleanup();
+
+        if (prepareMusic()) {
+          resolve();
+        } else {
+          reject(new Error("Invalid audio duration."));
+        }
+      };
+
+      const onError = () => {
+        cleanup();
+        reject(new Error("Could not load ariamath.mp3."));
+      };
+
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error("Audio loading timed out."));
+      }, 15000);
+
+      music.addEventListener("loadedmetadata", onLoaded);
+      music.addEventListener("error", onError);
+
+      // Check again in case metadata loaded during setup.
+      if (prepareMusic()) {
+        cleanup();
+        resolve();
+      } else {
         music.load();
       }
+    }).finally(() => {
+      metadataPromise = null;
+    });
 
-      if (!prepareMusic()) {
-        toggle.textContent = "⏳ Loading Music...";
-        return;
-      }
+    return metadataPromise;
+  }
 
-      if (music.currentTime < startTime ||
-          music.currentTime >= music.duration) {
+  // Start playing from the final two minutes.
+  async function playMusic() {
+    toggle.textContent = "⏳ Loading Music...";
+    toggle.disabled = true;
+
+    try {
+      await waitForMetadata();
+
+      if (
+        music.currentTime < startTime ||
+        music.currentTime >= music.duration
+      ) {
         music.currentTime = startTime;
       }
+
+      await music.play();
+
+      toggle.textContent = "🔊 Music On";
+    } catch (error) {
+      console.error("SANDRASIFT music:", error);
+
+      toggle.textContent =
+        error.name === "NotAllowedError"
+          ? "🎵 Tap to Play"
+          : "⚠️ Retry Music";
+    } finally {
+      toggle.disabled = false;
+    }
+  }
+
+  // Play or pause using the button.
+  toggle.addEventListener("click", async () => {
+    if (!music.paused) {
+      music.pause();
+      toggle.textContent = "🔇 Music Off";
+      return;
+    }
+
+    await playMusic();
+  });
+
+  // Loop the final two minutes, not the entire song.
+  function loopFinalSection() {
+    if (!prepareMusic()) return;
+
+    if (music.currentTime >= music.duration - 0.2) {
+      music.currentTime = startTime;
+    }
+  }
+
+  music.addEventListener("timeupdate", loopFinalSection);
+
+  music.addEventListener("ended", async () => {
+    if (prepareMusic()) {
+      music.currentTime = startTime;
 
       try {
         await music.play();
@@ -3057,18 +3150,31 @@ function manualRefresh(){
       } catch {
         toggle.textContent = "🎵 Tap to Play";
       }
-    } else {
-      music.pause();
-      toggle.textContent = "🔇 Music Off";
     }
   });
 
-  music.addEventListener("ended", () => {
-    if (prepareMusic()) {
-      music.currentTime = startTime;
-      music.play().catch(() => {});
-    }
+  music.addEventListener("play", () => {
+    toggle.textContent = "🔊 Music On";
   });
+
+  music.addEventListener("pause", () => {
+    toggle.textContent = "🔇 Music Off";
+  });
+
+  // Attempt autoplay. Browsers may require a user click.
+  waitForMetadata()
+    .then(() => {
+      music.currentTime = startTime;
+
+      return music.play();
+    })
+    .then(() => {
+      toggle.textContent = "🔊 Music On";
+    })
+    .catch(() => {
+      toggle.textContent = "🎵 Enable Sound";
+    });
+
 })();
 </script>
 
