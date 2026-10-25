@@ -7,77 +7,7 @@
 <meta name="description" content="SANDRASIFT public read-only live robot tracking station">
 <title>SANDRASIFT | Live Tracking</title>
 
-<audio id="bgMusic" preload="auto">
-  <source src="./aria-math.mp3" type="audio/mpeg">
-</audio>
-
-<button id="musicToggle" style="
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 9999;
-  padding: 12px 18px;
-  border: 1px solid #6ee7b7;
-  border-radius: 12px;
-  background: #111827;
-  color: white;
-  cursor: pointer;
-">
-  🎵 Enable Sound
-</button>
-
-<script>
-  const music = document.getElementById("bgMusic");
-  const toggle = document.getElementById("musicToggle");
-
-  const SECTION_LENGTH = 120;
-
-  music.addEventListener("loadedmetadata", async () => {
-    music.currentTime = Math.max(
-      0,
-      music.duration - SECTION_LENGTH
-    );
-
-    music.addEventListener("timeupdate", () => {
-      if (music.currentTime >= music.duration) {
-        music.currentTime = Math.max(
-          0,
-          music.duration - SECTION_LENGTH
-        );
-        music.play().catch(() => {});
-      }
-    });
-
-    try {
-      await music.play();
-      toggle.textContent = "🔊 Music On";
-    } catch {
-      toggle.textContent = "🎵 Enable Sound";
-    }
-  }, { once: true });
-
-  toggle.addEventListener("click", async () => {
-    if (music.paused) {
-      if (music.currentTime === 0) {
-        music.currentTime = Math.max(
-          0,
-          music.duration - SECTION_LENGTH
-        );
-      }
-
-      try {
-        await music.play();
-        toggle.textContent = "🔊 Music On";
-      } catch {
-        toggle.textContent = "🎵 Tap to Play";
-      }
-    } else {
-      music.pause();
-      toggle.textContent = "🔇 Music Off";
-    }
-  });
-</script>
-  
+ 
 <style>
 *{box-sizing:border-box}
 
@@ -3037,6 +2967,100 @@ function manualRefresh(){
   refresh();
   drawChart();
 
+})();
+</script>
+
+<audio id="bgMusic" preload="auto">
+  <source src="./ARIAMATH.mp3" type="audio/mpeg">
+</audio>
+
+<button id="musicToggle" style="
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  z-index:9999;
+  padding:12px 18px;
+  border:1px solid #6ee7b7;
+  border-radius:12px;
+  background:#111827;
+  color:white;
+  cursor:pointer;
+">
+  🎵 Enable Sound
+</button>
+
+<script>
+(() => {
+  const music = document.getElementById("bgMusic");
+  const toggle = document.getElementById("musicToggle");
+  const SECTION_LENGTH = 120;
+
+  let startTime = 0;
+
+  function prepareMusic() {
+    if (!Number.isFinite(music.duration) || music.duration <= 0) {
+      return false;
+    }
+
+    startTime = Math.max(0, music.duration - SECTION_LENGTH);
+    return true;
+  }
+
+  music.addEventListener("loadedmetadata", () => {
+    prepareMusic();
+
+    // Attempt autoplay; browsers may block sound.
+    music.currentTime = startTime;
+
+    music.play().then(() => {
+      toggle.textContent = "🔊 Music On";
+    }).catch(() => {
+      toggle.textContent = "🎵 Enable Sound";
+    });
+  }, { once: true });
+
+  // Loop only the final two minutes.
+  music.addEventListener("timeupdate", () => {
+    if (music.duration && music.currentTime >= music.duration - 0.15) {
+      music.currentTime = startTime;
+      music.play().catch(() => {});
+    }
+  });
+
+  toggle.addEventListener("click", async () => {
+    if (music.paused) {
+      if (music.readyState === 0) {
+        music.load();
+      }
+
+      if (!prepareMusic()) {
+        toggle.textContent = "⏳ Loading Music...";
+        return;
+      }
+
+      if (music.currentTime < startTime ||
+          music.currentTime >= music.duration) {
+        music.currentTime = startTime;
+      }
+
+      try {
+        await music.play();
+        toggle.textContent = "🔊 Music On";
+      } catch {
+        toggle.textContent = "🎵 Tap to Play";
+      }
+    } else {
+      music.pause();
+      toggle.textContent = "🔇 Music Off";
+    }
+  });
+
+  music.addEventListener("ended", () => {
+    if (prepareMusic()) {
+      music.currentTime = startTime;
+      music.play().catch(() => {});
+    }
+  });
 })();
 </script>
 
